@@ -1,0 +1,137 @@
+[ Bonk lossy/lossless audio coder ]
+
+Version 0.6
+
+Written by Paul Harrison
+
+Bonk is a high quality audio compression program. It can operate in
+either lossless or lossy mode. In lossless mode, the exact original
+WAV file can be recovered from the compressed file. In lossy mode,
+some information is discarded in the compressed file, yielding a much
+higher compression ratio.  The information discarded is perceptually
+unimportant, and the result should be a *perceptually* lossless encoding.
+Bonk can compress some types of sounds more than others, so the actual
+bit-rate achieved varies.
+
+In lossy mode, it can compress some types of sound to as low as 95 kbps
+(a compression ration of 14:1) while maintaining perceptually lossless
+CD quality stereo.  In general, the compression ratio achieved by Bonk
+is slightly higher than that achieved using the more common MP3 format,
+for equivalent sound quality.  In particular it copes with transients
+(eg clapping, drum beats) better. Performance on purely tonal sound is
+roughly equivalent to MP3.
+
+In lossless mode the compression ratio is typically around 2:1.
+
+Bonk differs from most existing lossy coders in that it does not
+use a Fourier transform to analyse the audio. Instead it uses a
+linear predictor (as used in speech compression) with a very high tap
+count. This approach has several advantages. Firstly, the power spectrum
+of a linear predictor is very similar to human perceptual masking, so we
+get perceptual masking effects without any extra explicit modelling of
+masking effects.  Secondly, it can better reproduce certain sounds such
+as clapping which contain transients. Thirdly, it is easily implemented
+using fixed point arithmetic, allowing both lossy and lossless modes
+using the same algorithm.
+
+Decoding BONK files is computationally expensive, but should be possible
+in real-time on computers that aren't too ancient.
+
+Bonk is free software distributed under the General Public License, see the
+file COPYING for details.
+
+[ Compiling and installing ]
+
+Bonk currently compiles for Linux, FreeBSD, NetBSD and OpenBSD.  If you
+are using NetBSD or OpenBSD, edit the Makefile before compiling (see
+the comments in the Makefile for instructions).
+
+To compile and install type
+
+  make
+  make install
+
+[ Usage ]
+
+Here are some examples of how to use Bonk:
+
+ * To compress file.wav into file.bonk using the default lossy mode:
+
+       bonk encode file.wav
+
+   The degree of quantization (lossiness) can be adjusted using the -q
+   option. This specifies the amount of perceptual loss: Bonk will choose
+   an appropriate bitrate based this and the exact nature of the sound,
+   higher for more complex sounds, lower for simpler sounds. 
+
+   - high quality
+
+       bonk encode -q 0.5 file.wav
+
+   - default
+   
+       bonk encode -q 1.0 file.wav
+
+   - low quality
+
+       bonk encode -q 1.5 file.wav
+
+   For speech, first convert to a single channel and an appropriate sampling
+   rate (say, 11025 Hz). This can be done with the commonly available "sox"
+   program. Then encode using a fairly small predictor size thus:
+
+   - speech, about 20 kbps
+
+       sox file.wav -r 11025 -c 1 new-file.wav
+       bonk encode -s 10 -d 1 -q 2.5 new-file.wav
+
+   Note: specialized speech compressors (such as RPE-LTP) can achieve several 
+   times better compression.
+
+ * To compress file.wav into file.bonk in lossless mode:
+
+       bonk encode -l file.wav
+
+ * To play a BONK file:
+
+       bonk play file.bonk
+
+ * To decode file.bonk back into file.wav:
+
+       bonk decode file.bonk
+
+Run bonk with no arguments for further usage instructions.
+
+[ Contacting the author ]
+
+My email address is pfh@csse.monash.edu.au. I am interested to know
+what you think of the BONK format and program. Are there any features
+missing which should be added? Are there particular types of music it
+doesn't cope with? Do you want to give me lots of money so I can devote
+more time to work on it?
+
+[ Change log ]
+
+0.1 - Initial release
+
+0.2 - Problem with predictor which caused a warbling effect for very pure
+        tones fixed (by limiting the impulse response of the predictor)
+      Energy used to determine quantization calculated directly from errors 
+        now, rather than estimated
+      Neatened up-sampling interpolation
+
+0.3 - Altered up-sampler again (it was cutting off high frequencies)
+      Reduced default quantization level
+      Extra options:
+	Predictor size (for better speech compression)
+        Artist, Title (for comment header)
+	Output file
+
+0.4 - Endian safe playback (ie, now works on PowerPCs)
+      More elegant (and faster) encoding algorithm
+      Slightly faster decoding
+
+0.5 - Support for *BSD (courtesy of a patch by Christian Weisgerber) 
+      Now automatically increases bitrate for tonal sounds
+
+0.6 - Work with gcc 3.1
