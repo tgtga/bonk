@@ -37,6 +37,7 @@ const char *version = "0.6";
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <cstring>
 
 using namespace std;
 
